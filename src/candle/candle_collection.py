@@ -177,3 +177,25 @@ class CandleCollection:
 			return None
 
 		return resistance.close
+
+	def is_impulse(self)-> bool | None:
+		if len(self.candles) == 0:
+			return None
+
+		(_lows, _highs, both) = self.get_trend_reverses()
+		if len(both) == 0:
+			last_reverse = self.candles[0]
+		else:
+			last_reverse = both[-1]
+
+		last_candle = self.candles[-1]
+
+		if last_reverse.timestamp == last_candle.timestamp:
+			return False
+
+		if last_reverse.close > last_candle.close:
+			return False
+
+		return True
+
+

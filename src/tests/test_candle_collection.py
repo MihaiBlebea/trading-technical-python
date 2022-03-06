@@ -80,6 +80,27 @@ class TestCandleCollection(unittest.TestCase):
 		resistance = cc.get_resistance()
 		self.assertIsNone(resistance)
 
+	def test_is_impulse_simple(self):
+		cc = CandleCollection(self.gen_candles_from_seq(
+			[1, 2, 3, 4]
+		))
+
+		self.assertTrue(cc.is_impulse())
+
+	def test_is_impulse_complex(self):
+		cc = CandleCollection(self.gen_candles_from_seq(
+			[1, 2, 3, 4, 2, -1, 3]
+		))
+
+		self.assertTrue(cc.is_impulse())
+
+	def test_is_not_impulse(self):
+		cc = CandleCollection(self.gen_candles_from_seq(
+			[1, 2, 3, 4, 2, -1, -3]
+		))
+
+		self.assertFalse(cc.is_impulse())
+
 	def gen_candles_from_seq(self, seq: List[int])-> List[Candle]:
 		return [
 			Candle.from_dict({
