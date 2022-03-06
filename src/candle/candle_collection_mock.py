@@ -1,5 +1,5 @@
-from src.candle_collection import CandleCollection
-from src.candle import Candle
+from src.candle.candle_collection import CandleCollection
+from src.candle.candle import Candle
 
 import random
 

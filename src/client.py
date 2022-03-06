@@ -81,8 +81,11 @@ class Client():
 			time_in_force="day",
 		)
 
+		return order
+
 
 if __name__ == "__main__":
 	c = Client()
+	pprint(c)
 	order = c.place_buy_order("BTCUSD", 38363.80)
 	print(order)

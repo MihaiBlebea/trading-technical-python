@@ -3,7 +3,7 @@ from typing import List, Tuple
 import json
 from enum import Enum
 
-from src.candle import Candle
+from src.candle.candle import Candle
 
 from pprint import pprint
 

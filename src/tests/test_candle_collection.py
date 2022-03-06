@@ -1,17 +1,24 @@
 import unittest
 from typing import List
+import json
 
-from src.candle_collection import CandleCollection, Trend
-from src.candle import Candle
+from src.candle.candle_collection import CandleCollection, Trend
+from src.candle.candle import Candle
 
 
 class TestCandleCollection(unittest.TestCase):
 
 	def test_load_from_file(self):
-		cc = CandleCollection()
-		cc.load_from_file("./data/BTCUSD_bars.json")
+		file_path = "./data/BTCUSD_bars.json"
 
-		self.assertEqual(len(cc.candles), 10)
+		cc = CandleCollection()
+		cc.load_from_file(file_path)
+
+		with open(file_path, "r") as file:
+			data = json.loads(file.read())
+			count = len(data)
+
+			self.assertEqual(len(cc.candles), count)
 
 	def test_up_trend(self):
 		cc = CandleCollection(self.gen_candles_from_seq(
