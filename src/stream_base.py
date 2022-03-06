@@ -30,7 +30,7 @@ class BaseStreamer:
 			with open(file_path, "x") as file:
 				file.write(json.dumps([]))
 
-	def write_data(self, candle: Candle):
+	def write_candle(self, candle: Candle):
 		file_path = f"{dir}/../data/{self.symbol}_bars.json"
 		self.create_target_file_if_not_exists(file_path)
 
@@ -42,6 +42,16 @@ class BaseStreamer:
 		with open(file_path, "r+") as file:
 			file_data = json.load(file)
 			file_data.append(candle.to_dict())
+			file.seek(0)
+			json.dump(file_data, file, indent = 4)
+
+	def write_order(self, order: dict):
+		file_path = f"{dir}/../data/{self.symbol}_orders.json"
+		self.create_target_file_if_not_exists(file_path)
+
+		with open(file_path, "r+") as file:
+			file_data = json.load(file)
+			file_data.append(order)
 			file.seek(0)
 			json.dump(file_data, file, indent = 4)
 

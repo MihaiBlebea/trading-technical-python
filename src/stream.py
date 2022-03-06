@@ -2,10 +2,17 @@ from pprint import pprint
 
 from src.stream_base import BaseStreamer
 from src.candle import Candle
+from src.candle_collection import CandleCollection
+from src.client import Client
+
 
 class Streamer(BaseStreamer):
-	def __init__(self, symbol: str):
+
+	def __init__(self, client: Client, symbol: str):
 		super().__init__(symbol)
+
+		self.client = client
+		self.cc = CandleCollection()
 
 		self.stream.subscribe_trade_updates(self.crypto_trade_handler)
 		self.stream.subscribe_crypto_bars(self.crypto_bars_handler, self.symbol)
@@ -32,9 +39,16 @@ class Streamer(BaseStreamer):
 		if data.exchange != self.exchange:
 			return
 		candle = Candle.from_dict(data.__dict__["_raw"])
-		self.write_data(candle)
+		self.cc.add(candle)
+		pprint(self.cc.candles)
+		print(f"Resistance {self.cc.get_resistance()}")
+		print(f"Support {self.cc.get_support()}")
+		self.write_candle(candle)
+
+		order = self.client.place_buy_order(self.symbol, candle.close)
+		self.write_order(order.__dict__["_raw"])
 
 
 if __name__ == "__main__":
-	s = Streamer("BTCUSD")
+	s = Streamer(Client(), "BTCUSD")
 	s.run()

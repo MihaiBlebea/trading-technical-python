@@ -31,6 +31,48 @@ class TestCandleCollection(unittest.TestCase):
 		))
 		self.assertEqual(cc.get_trend(), Trend.NA)
 
+	def test_support_price_can_be_found(self):
+		cc = CandleCollection(self.gen_candles_from_seq(
+			[4, 2, 4, 3, 5, 10]
+		))
+		support = cc.get_support()
+		self.assertEqual(support, 102)
+
+	def test_support_price_cannot_be_found(self):
+		cc = CandleCollection(self.gen_candles_from_seq(
+			[4, 2, 4, 5, 10]
+		))
+		support = cc.get_support()
+		self.assertIsNone(support)
+
+	def test_support_price_is_broken_by_candle(self):
+		cc = CandleCollection(self.gen_candles_from_seq(
+			[4, 2, 4, -1, 5, 10]
+		))
+		support = cc.get_support()
+		self.assertIsNone(support)
+
+	def test_resistance_price_can_be_found(self):
+		cc = CandleCollection(self.gen_candles_from_seq(
+			[1, 2, 3, 4, 2, 4, -1]
+		))
+		resistance = cc.get_resistance()
+		self.assertEqual(resistance, 104)
+
+	def test_resistance_price_cannot_be_found(self):
+		cc = CandleCollection(self.gen_candles_from_seq(
+			[1, 2, 3, 4, 2, -1]
+		))
+		resistance = cc.get_resistance()
+		self.assertIsNone(resistance)
+
+	def test_resistance_price_is_broken_by_candle(self):
+		cc = CandleCollection(self.gen_candles_from_seq(
+			[1, 2, 3, 4, 2, 6, -1]
+		))
+		resistance = cc.get_resistance()
+		self.assertIsNone(resistance)
+
 	def gen_candles_from_seq(self, seq: List[int])-> List[Candle]:
 		return [
 			Candle.from_dict({
