@@ -29,6 +29,9 @@ class CandleCollection:
 			for d in data:
 				self.add(Candle.from_dict(d))
 
+	def to_dict(self)-> dict:
+		return [candle.to_dict() for candle in self.candles]
+
 	def add(self, candle: Candle)-> List[Candle]:
 		self.candles.append(candle)
 		self.sort_candles()

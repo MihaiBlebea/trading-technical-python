@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Dashboard {{ data.symbol }}</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dojichart@latest/dist/dojichart.min.css" />
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/dojichart@latest/dist/dojichart.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.26.0/axios.min.js"></script>
+</head>
+
+<body>
+	<div class="container pt-5">
+		<h1 class="text-center">{{ data.symbol }}</h1>
+
+		<div class="dojichart" id="stocks_chart">
+			<div class="region" data-name="price"></div>
+			<div class="region" data-name="timelabels"></div>
+			<div class="region" data-name="volume"></div>
+		</div>
+
+		<div class="row justify-content-center mb-2 mt-5">
+			<div class="col-12 col-md-6 row">
+
+				{% for article in data.news %}
+				<div class="col-12">
+					<div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+						<div class="col p-4 d-flex flex-column position-static">
+							<strong class="d-inline-block mb-2 text-primary">{{ data.symbol }}</strong>
+							<h3 class="mb-0">{{ article.title }}</h3>
+							<div class="mb-1 text-muted">{{ article.published_utc }}</div>
+							<p class="card-text mb-auto">This is a wider card with supporting text below as a natural
+								lead-in to additional content.</p>
+							<a href="{{ article.link }}" target="_blank" class="stretched-link">Continue reading</a>
+						</div>
+						<div class="col-auto d-none d-lg-block">
+							<svg class="bd-placeholder-img" width="200" height="250" xmlns="http://www.w3.org/2000/svg"
+								role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice"
+								focusable="false">
+								<title>Placeholder</title>
+								<rect width="100%" height="100%" fill="#55595c" data-darkreader-inline-fill=""
+									style="--darkreader-inline-fill:#43484b;"></rect><text x="50%" y="50%" fill="#eceeef"
+									dy=".3em" data-darkreader-inline-fill=""
+									style="--darkreader-inline-fill:#dbd7d3;">Thumbnail</text>
+							</svg>
+
+						</div>
+					</div>
+				</div>
+				{% endfor %}
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		// Load data and render function
+		let loadData = () => {
+			axios.get("/api/candles/aapl").then((result) => {
+				console.log(result.data)
+				data = result.data
+				dojichart.loadData(data, "AAPL", "M5")
+			}).catch((e) => {
+				console.error(e)
+			})
+		}
+		// Call the function initially on page render
+		loadData()
+
+		// Create dojichart instance and map values
+		let dojichart = new DojiChart.core.Chart(document.getElementById("stocks_chart"), {
+			fieldMap: {
+				time: "datetime",
+				open: "open",
+				high: "high",
+				low: "low",
+				close: "close",
+				volume: "volume"
+			}
+		})
+
+		// Create a chart panel with a candlestick chart layer
+		let price_chart_panel = new DojiChart.panel.TimeValuePanel({
+			primaryLayer: new DojiChart.layer.CandleLayer(),
+			height: 200,
+			grid: true
+		})
+
+		// Render the panel in the region named "price"
+		dojichart.addComponent("price", price_chart_panel)
+
+		// Adds the time labels
+		let time_labels_panel = new DojiChart.panel.TimeLabelsPanel()
+		dojichart.addComponent("timelabels", time_labels_panel)
+
+		// Volume layer
+		let volume_layer = new DojiChart.layer.indicator.VolumeLayer({
+			barColor: "#3377FF",
+			barWidth: 5
+		})
+
+		let volume_chart_panel = new DojiChart.panel.TimeValuePanel({
+			height: 100,
+			primaryLayer: volume_layer
+		})
+
+		dojichart.addComponent("volume", volume_chart_panel);
+
+		// Adds simple moving average component
+		let sma_layer = new DojiChart.layer.indicator.SimpleMovingAverageLayer({
+			period: 50
+		})
+
+		price_chart_panel.addLayer(sma_layer)
+
+		// Query the BE api every 1 minute and render the chart again with new data
+		setInterval(() => {
+			loadData()
+		}, 1000 * 60)
+
+	</script>
+</body>
+
+</html>

@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timezone
 
 from src.config import get_key
-from src.candle import Candle
+from src.candle.candle import Candle
 from alpaca_trade_api.stream import Stream
 
 dir = Path(__file__).parent.resolve()

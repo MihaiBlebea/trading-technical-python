@@ -1,8 +1,8 @@
 from pprint import pprint
 
 from src.stream_base import BaseStreamer
-from src.candle import Candle
-from src.candle_collection import CandleCollection
+from src.candle.candle import Candle
+from src.candle.candle_collection import CandleCollection
 from src.client import Client
 
 
@@ -40,13 +40,13 @@ class Streamer(BaseStreamer):
 			return
 		candle = Candle.from_dict(data.__dict__["_raw"])
 		self.cc.add(candle)
-		pprint(self.cc.candles)
-		print(f"Resistance {self.cc.get_resistance()}")
-		print(f"Support {self.cc.get_support()}")
+		# pprint(self.cc.candles)
+		# print(f"Resistance {self.cc.get_resistance()}")
+		# print(f"Support {self.cc.get_support()}")
 		self.write_candle(candle)
 
-		order = self.client.place_buy_order(self.symbol, candle.close)
-		self.write_order(order.__dict__["_raw"])
+		# order = self.client.place_buy_order(self.symbol, candle.close)
+		# self.write_order(order.__dict__["_raw"])
 
 
 if __name__ == "__main__":
