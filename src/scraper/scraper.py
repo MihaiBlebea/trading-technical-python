@@ -35,11 +35,11 @@ class Scraper:
 	def set_symbols(self, symbols: list)-> None:
 		self.symbols = symbols
 
-	@cache_in("yearly_financials.json")
-	def get_ticker_yearly_financials(self, ticker: yf.Ticker)-> dict:
+	@cache_in("quarterly_financials.json")
+	def get_ticker_quarterly_financials(self, ticker: yf.Ticker)-> dict:
 		symbol = ticker.ticker
 		res = {}
-		fin = ticker.financials.to_dict()
+		fin = ticker.quarterly_financials.to_dict()
 		for key, val in fin.items():
 			if isinstance(key, str) is True:
 				print(f"Skipping symbol {symbol}...")
@@ -76,7 +76,7 @@ class Scraper:
 		analysis = []
 		for ticker in self.tickers:
 			print(f"{count}/{len(self.tickers)} Fetching data for {ticker.ticker}")
-			financials.append(self.get_ticker_yearly_financials(ticker))
+			financials.append(self.get_ticker_quarterly_financials(ticker))
 			infos.append(self.get_ticker_info(ticker))
 			news.append(self.get_ticker_news(ticker))
 			analysis.append(self.get_ticker_analysis(ticker))
@@ -94,3 +94,7 @@ class Scraper:
 		news["feature_image"] = images[0] if len(images) > 0 else "https://www.altfi.com/images/companies/yahoo-finance.png"
 
 		return news
+
+if __name__ == "__main__":
+	s = Scraper(["AAPL", "TSLA", "DDOG", "NET"])
+	s.scrape_data()
