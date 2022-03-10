@@ -14,13 +14,17 @@ class Streamer(BaseStreamer):
 		self.client = client
 		self.cc = CandleCollection()
 
-		self.stream.subscribe_trade_updates(self.crypto_trade_handler)
-		self.stream.subscribe_crypto_bars(self.crypto_bars_handler, self.symbol)
+		self.symbols = ["AAPL", "TSLA", "GOOG", "FB"]
+
+		self.stream.subscribe_trade_updates(self.trade_update_handler)
+		# self.stream.subscribe_crypto_bars(self.crypto_bars_handler, self.symbol)
+		
+		self.stream.subscribe_bars(self.bars_handler, *self.symbols)
 
 	def run(self)-> None:
 		self.stream.run()
 
-	async def crypto_trade_handler(self, data):
+	async def trade_update_handler(self, data):
 		event_type = data.event
 
 		message = None
@@ -35,18 +39,27 @@ class Streamer(BaseStreamer):
 		if message is None:
 			return
 			
-	async def crypto_bars_handler(self, data):
-		if data.exchange != self.exchange:
-			return
+	# async def crypto_bars_handler(self, data):
+	# 	print("New crypto bar update")
+	# 	if data.exchange != self.exchange:
+	# 		return
+	# 	candle = Candle.from_dict(data.__dict__["_raw"])
+	# 	self.cc.add(candle)
+	# 	# pprint(self.cc.candles)
+	# 	# print(f"Resistance {self.cc.get_resistance()}")
+	# 	# print(f"Support {self.cc.get_support()}")
+	# 	self.write_candle(candle)
+
+	# 	# order = self.client.place_buy_order(self.symbol, candle.close)
+	# 	# self.write_order(order.__dict__["_raw"])
+
+	async def bars_handler(self, data):
+		print("New crypto bar update")
+		pprint(data)
+
 		candle = Candle.from_dict(data.__dict__["_raw"])
 		self.cc.add(candle)
-		# pprint(self.cc.candles)
-		# print(f"Resistance {self.cc.get_resistance()}")
-		# print(f"Support {self.cc.get_support()}")
 		self.write_candle(candle)
-
-		# order = self.client.place_buy_order(self.symbol, candle.close)
-		# self.write_order(order.__dict__["_raw"])
 
 
 if __name__ == "__main__":

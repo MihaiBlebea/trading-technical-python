@@ -2,6 +2,17 @@ from __future__ import annotations
 
 
 class News:
+
+	def __init__(self):
+		self.link = None
+		self.publish_timestamp = None
+		self.published_utc = None
+		self.publisher = None
+		self.title = None
+		self.type = None
+		self.uuid = None
+		self.feature_image = None
+
 	def from_dict(data: dict)-> News:
 		n = News()
 		n.link = data["link"]
@@ -11,6 +22,7 @@ class News:
 		n.title = data["title"]
 		n.type = data["type"]
 		n.uuid = data["uuid"]
+		n.feature_image = data["feature_image"]
 
 		return n
 

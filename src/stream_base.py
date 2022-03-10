@@ -31,13 +31,9 @@ class BaseStreamer:
 				file.write(json.dumps([]))
 
 	def write_candle(self, candle: Candle):
-		file_path = f"{dir}/../data/{self.symbol}_bars.json"
+		symbol = candle.symbol
+		file_path = f"{dir}/../data/{symbol}_bars.json"
 		self.create_target_file_if_not_exists(file_path)
-
-		# an update has already been saved at this point in time
-		if self.last_min is not None and candle.datetime == self.last_min:
-			return
-		self.last_min = candle.datetime
 
 		with open(file_path, "r+") as file:
 			file_data = json.load(file)

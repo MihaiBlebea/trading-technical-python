@@ -4,6 +4,8 @@ import yfinance as yf
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
 
 from src.scraper.middleware import cache_in
 
@@ -55,6 +57,9 @@ class Scraper:
 	def get_ticker_news(self, ticker: yf.Ticker)-> dict:
 		news = ticker.news
 		for n in ticker.news:
+			# scrape the article source and fetch image and description
+			n = self.scrape_extra_news_data(n)
+
 			n["publishedUTC"] = datetime.fromtimestamp(n["providerPublishTime"]).strftime("%Y-%m-%d")
 
 		return news
@@ -79,7 +84,13 @@ class Scraper:
 
 		return None
 
+	def scrape_extra_news_data(self, news: dict)-> dict:
+		response = requests.get(news["link"])
+		soup = BeautifulSoup(response.text, features="lxml")
 
-if __name__ == "__main__":
-	screener = Scraper(["AAPL"])
-	screener.scrape_data()
+		metas = soup.find_all("meta")
+
+		images = [ meta.attrs["content"] for meta in metas if "property" in meta.attrs and meta.attrs["property"] == "og:image" ]
+		news["feature_image"] = images[0] if len(images) > 0 else "https://www.altfi.com/images/companies/yahoo-finance.png"
+
+		return news

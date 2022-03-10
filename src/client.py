@@ -28,26 +28,24 @@ class Client():
 
 		return invest_cash
 
-	def place_bracket_order(self, symbol: str, buy_price: float)-> None | trade_api.rest.Order:
+	def place_bracket_order(self, symbol: str, qty: int, buy_price: float, take_profit: float = None, stop_loss: float = None)-> None | trade_api.rest.Order:
 		invest_cash = self.get_amount_to_invest()
 		if invest_cash is None:
 			return None
 
-		take_profit = buy_price + buy_price * 0.01
-		stop_price = buy_price - buy_price * 0.01
-		print(f"Take profit ${take_profit}")
-		print(f"Stop price ${stop_price}")
+		take_profit = buy_price + buy_price * 0.01 if take_profit is None else take_profit
+		stop_loss = buy_price - buy_price * 0.01 if stop_loss is None else stop_loss
 
 		order = self.api_client.submit_order(
 			side="buy",
 			symbol=symbol,
 			type="market",
-			qty=1,
+			qty=qty,
 			time_in_force="gtc",
 			order_class="bracket",
 			take_profit={"limit_price": take_profit},
 			stop_loss={
-				"stop_price": stop_price,
+				"stop_price": stop_loss,
 				# "limit_price": 298.5
 			}
 		)
@@ -82,10 +80,3 @@ class Client():
 		)
 
 		return order
-
-
-if __name__ == "__main__":
-	c = Client()
-	pprint(c)
-	order = c.place_buy_order("BTCUSD", 38363.80)
-	print(order)

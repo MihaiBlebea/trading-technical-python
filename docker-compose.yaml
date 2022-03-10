@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+    dashboard:
+        container_name: dashboard
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - "8080:8080"
+        volumes:
+            - "./data:/app/data"
+        env_file: .env
+        restart: on-failure:3
+        command: ./execute_dashboard.sh
+
+    stream:
+        container_name: stream
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - "./data:/app/data"
+        env_file: .env
+        restart: on-failure:3
+        command: ./execute.sh stream
