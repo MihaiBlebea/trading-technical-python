@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
+import concurrent.futures
 
 from src.scraper.middleware import cache_in
 
@@ -68,21 +69,27 @@ class Scraper:
 	def get_ticker_analysis(self, ticker: yf.Ticker)-> dict:
 		return ticker.analysis.to_dict()
 
-	def scrape_data(self)-> list:
+	def scrape_single(self, ticker: yf.Ticker)-> None:
+		self.get_ticker_quarterly_financials(ticker)
+		self.get_ticker_info(ticker)
+
+	def scrape_data(self)-> None:
 		count = 1
-		financials = []
-		infos = []
-		news = []
-		analysis = []
 		for ticker in self.tickers:
 			print(f"{count}/{len(self.tickers)} Fetching data for {ticker.ticker}")
-			financials.append(self.get_ticker_quarterly_financials(ticker))
-			infos.append(self.get_ticker_info(ticker))
-			news.append(self.get_ticker_news(ticker))
-			analysis.append(self.get_ticker_analysis(ticker))
+			self.get_ticker_quarterly_financials(ticker)
+			self.get_ticker_info(ticker)
+			# self.get_ticker_news(ticker)
+			# self.get_ticker_analysis(ticker)
 			count += 1
 
 		return None
+
+	def scrape_data_concurrent(self)-> None:
+		with concurrent.futures.ThreadPoolExecutor() as tpe:
+			for ticker in self.tickers:
+				print(f"{count}/{len(self.tickers)} Fetching data for {ticker.ticker}")
+				tpe.submit(self.scrape_single, ticker)
 
 	def scrape_extra_news_data(self, news: dict)-> dict:
 		response = requests.get(news["link"])
@@ -96,5 +103,12 @@ class Scraper:
 		return news
 
 if __name__ == "__main__":
-	s = Scraper(["AAPL", "TSLA", "DDOG", "NET"])
-	s.scrape_data()
+	start_time = datetime.now()
+	# s = Scraper()
+	universe = Scraper.get_symbols()
+	print(universe)
+	print(len(universe))
+	s = Scraper(universe)
+	s.scrape_data_concurrent()
+
+	print(datetime.now() - start_time)

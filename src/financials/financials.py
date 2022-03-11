@@ -17,6 +17,10 @@ class Financials:
 
 		with open(file_path, "r") as file:
 			data = json.loads(file.read())
+			if data is None:
+				print(f"Skip symbol {file_path}")
+				return None
+
 			for key, val in data.items():
 				val["date"] = key
 
@@ -26,20 +30,28 @@ class Financials:
 
 				self.add_financial_statement(financial)
 
-	def add_financial_statement(
-		self, financial_statement: FinancialStatement)-> List[FinancialStatement]:
-
+	def add_financial_statement(self, financial_statement: FinancialStatement)-> List[FinancialStatement]:
 		self.financial_statements.append(financial_statement)
 		self.financial_statements = sorted(self.financial_statements, key = lambda d: d.date)
 
 		return self.financial_statements
 
-	def is_profitable(self)-> bool:
-		print(self.financial_statements[-1].to_dict())
+	def is_net_profitable(self)-> bool:
 		return self.financial_statements[-1].net_income > 0
 
 if __name__ == "__main__":
 	from pprint import pprint
-	fs = Financials()
-	fs.load_from_file("./data/DDOG/quarterly_financials.json")
-	pprint(fs.is_profitable())
+	from src.scraper.scraper import Scraper
+	symbols = Scraper.get_symbols()
+
+	results = []
+	for symbol in symbols:
+		fs = Financials()
+		res = fs.load_from_file(f"./data/{symbol}/quarterly_financials.json")
+		if res is None:
+			continue
+
+		if fs.is_net_profitable() == False:
+			results.append(fs)
+
+	pprint(results)

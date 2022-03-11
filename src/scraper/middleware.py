@@ -19,9 +19,12 @@ def cache_in(file_name: str):
 					return json.loads(file.read())
 			# check if cache exists and return if found
 			
-			res = cb(self, ticker)
-			
-			print(f"\t- Scraped {name} data for {symbol} ✅")
+			try:
+				res = cb(self, ticker)
+				
+				print(f"\t- Scraped {name} data for {symbol} ✅")
+			except:
+				print(f"\t- Failed to scrape {name} data for {symbol} ❌")
 
 			# cache the response
 			Path(folder_path).mkdir(parents=True, exist_ok=True)
