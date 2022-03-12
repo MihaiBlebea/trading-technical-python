@@ -62,6 +62,7 @@ class Scraper:
 			n = self.scrape_extra_news_data(n)
 
 			n["publishedUTC"] = datetime.fromtimestamp(n["providerPublishTime"]).strftime("%Y-%m-%d")
+			n["symbol"] = ticker.ticker.upper()
 
 		return news
 
@@ -69,27 +70,48 @@ class Scraper:
 	def get_ticker_analysis(self, ticker: yf.Ticker)-> dict:
 		return ticker.analysis.to_dict()
 
-	def scrape_single(self, ticker: yf.Ticker)-> None:
+	@cache_in("quarterly_earnings.json")
+	def get_ticker_quarterly_earnings(self, ticker: yf.Ticker)-> dict:
+		return ticker.quarterly_earnings.to_dict()
+
+	@cache_in("balance_sheet.json")
+	def get_ticker_balance_sheet(self, ticker: yf.Ticker)-> dict:
+		symbol = ticker.ticker
+		res = {}
+		fin = ticker.balance_sheet.to_dict()
+		for key, val in fin.items():
+			if isinstance(key, str) is True:
+				print(f"Skipping symbol {symbol}...")
+				return
+			key = key.strftime("%Y-%m-%d")
+			res[key] = val
+
+		return res
+
+	def __scrape_single(self, ticker: yf.Ticker, index: int = None)-> None:
+		if index is not None:
+			print(f"{index}/{len(self.tickers)} Fetching data for {ticker.ticker}")
 		self.get_ticker_quarterly_financials(ticker)
 		self.get_ticker_info(ticker)
+		self.get_ticker_news(ticker)
+		self.get_ticker_analysis(ticker)
+		self.get_ticker_quarterly_earnings(ticker)
+		self.get_ticker_balance_sheet(ticker)
 
 	def scrape_data(self)-> None:
 		count = 1
 		for ticker in self.tickers:
-			print(f"{count}/{len(self.tickers)} Fetching data for {ticker.ticker}")
-			self.get_ticker_quarterly_financials(ticker)
-			self.get_ticker_info(ticker)
-			# self.get_ticker_news(ticker)
-			# self.get_ticker_analysis(ticker)
+			self.__scrape_single(ticker, count)
 			count += 1
 
 		return None
 
 	def scrape_data_concurrent(self)-> None:
+		count = 1
 		with concurrent.futures.ThreadPoolExecutor() as tpe:
 			for ticker in self.tickers:
-				print(f"{count}/{len(self.tickers)} Fetching data for {ticker.ticker}")
-				tpe.submit(self.scrape_single, ticker)
+				tpe.submit(self.__scrape_single, ticker, count)
+				count += 1
 
 	def scrape_extra_news_data(self, news: dict)-> dict:
 		response = requests.get(news["link"])
@@ -105,10 +127,7 @@ class Scraper:
 if __name__ == "__main__":
 	start_time = datetime.now()
 	# s = Scraper()
-	universe = Scraper.get_symbols()
-	print(universe)
-	print(len(universe))
-	s = Scraper(universe)
+	s = Scraper(["AAPL"])
 	s.scrape_data_concurrent()
 
 	print(datetime.now() - start_time)
